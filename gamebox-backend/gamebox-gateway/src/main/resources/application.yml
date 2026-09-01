@@ -1,0 +1,80 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: gamebox-gateway
+  codec:
+    max-in-memory-size: 20MB
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+    gateway:
+      routes:
+        - id: gamebox-auth
+          uri: lb://gamebox-auth
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - StripPrefix=1
+        - id: gamebox-user
+          uri: lb://gamebox-user
+          predicates:
+            - Path=/api/user/**
+          filters:
+            - StripPrefix=1
+        - id: gamebox-game
+          uri: lb://gamebox-user
+          predicates:
+            - Path=/api/game/**
+          filters:
+            - StripPrefix=1
+        - id: gamebox-ugame
+          uri: lb://gamebox-user
+          predicates:
+            - Path=/api/ugame/**
+          filters:
+            - StripPrefix=1
+        - id: gamebox-file
+          uri: lb://gamebox-user
+          predicates:
+            - Path=/api/file/**
+          filters:
+            - StripPrefix=1
+        - id: gamebox-files
+          uri: lb://gamebox-user
+          predicates:
+            - Path=/api/files/**
+          filters:
+            - StripPrefix=1
+        - id: gamebox-message
+          uri: lb://gamebox-user
+          predicates:
+            - Path=/api/message/**
+          filters:
+            - StripPrefix=1
+        - id: gamebox-strategy
+          uri: lb://gamebox-strategy
+          predicates:
+            - Path=/api/strategy/**
+          filters:
+            - StripPrefix=1
+        - id: gamebox-comment
+          uri: lb://gamebox-strategy
+          predicates:
+            - Path=/api/comment/**
+          filters:
+            - StripPrefix=1
+        - id: gamebox-team
+          uri: lb://gamebox-team
+          predicates:
+            - Path=/api/team/**
+          filters:
+            - StripPrefix=1
+        - id: gamebox-record
+          uri: lb://gamebox-record
+          predicates:
+            - Path=/api/record/**
+          filters:
+            - StripPrefix=1

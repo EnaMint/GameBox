@@ -1,0 +1,89 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--gb-bg);
+  color: var(--gb-text);
+  font-family: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 14px;
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 20px 60px;
+}
+
+.gb-card {
+  background-color: var(--gb-card);
+  border-radius: var(--gb-radius);
+  transition: background-color 0.2s;
+}
+
+.gb-card:hover {
+  background-color: var(--gb-card-hover);
+}
+
+.gb-link {
+  color: var(--gb-accent);
+  cursor: pointer;
+}
+
+.gb-link:hover {
+  text-decoration: underline;
+}
+
+.gb-muted {
+  color: var(--gb-text-muted);
+}
+
+.gb-tag-game {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 3px;
+  background-color: rgba(102, 192, 244, 0.15);
+  color: var(--gb-accent);
+  font-size: 12px;
+}
+
+.section-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.empty-holder {
+  padding: 60px 0;
+  text-align: center;
+  color: var(--gb-text-muted);
+}
+
+.cover-fallback {
+  background: linear-gradient(135deg, #2a3f5a 0%, #1b2838 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gb-text-muted);
+  font-size: 13px;
+}
+
+.avatar-fallback {
+  background-color: var(--gb-accent-deep);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}

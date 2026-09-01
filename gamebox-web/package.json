@@ -1,0 +1,70 @@
+{
+  "name": "gamebox-web",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "app": "electron .",
+    "app:dev": "electron . --dev-url=http://localhost:5173",
+    "dist": "npm run build && electron-builder --win",
+    "dist:portable": "npm run build && electron-builder --win portable"
+  },
+  "dependencies": {
+    "@element-plus/icons-vue": "^2.3.1",
+    "axios": "^1.7.7",
+    "element-plus": "^2.8.8",
+    "md-editor-v3": "^4.21.3",
+    "pinia": "^2.2.6",
+    "vue": "^3.5.13",
+    "vue-cropper": "^1.1.4",
+    "vue-router": "^4.4.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.0",
+    "electron": "^44.1.0",
+    "electron-builder": "^26.15.3",
+    "vite": "^5.4.11"
+  },
+  "build": {
+    "appId": "com.gamebox.desktop",
+    "productName": "GameBox",
+    "directories": {
+      "output": "release"
+    },
+    "electronDist": "../tools/electron-dist-win32-x64",
+    "files": [
+      "dist/**/*",
+      "electron/**/*"
+    ],
+    "win": {
+      "icon": "electron/gamebox.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "GameBox"
+    },
+    "portable": {
+      "artifactName": "GameBox-Portable-${version}.exe"
+    }
+  }
+}
