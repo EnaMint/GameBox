@@ -8,9 +8,11 @@ import java.util.List;
 
 public interface GameService {
 
-    Page<GameVO> list(String keyword, String genre, Integer page, Integer size);
+    Page<GameVO> list(String keyword, String genre, String tag, Integer page, Integer size);
 
     GameVO getById(Long id);
 
     List<GameBriefVO> batch(List<Long> ids);
+
+    List<String> tags();
 }

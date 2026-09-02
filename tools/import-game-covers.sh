@@ -30,6 +30,11 @@ MAP=(
   "14|CS2.jpg"
   "15|Apex.jpg"
   "16|Dota2.png"
+  "17|Genshin.png"
+  "18|YiHuan.png"
+  "19|Arknights.png"
+  "20|Endfield.png"
+  "21|ProjectSekai.jpg"
 )
 
 mkdir -p "$UPLOAD_DIR/cover/$DATE_DIR"

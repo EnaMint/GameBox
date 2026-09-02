@@ -10,10 +10,11 @@
         @keyup.enter="resetAndLoad"
         @clear="resetAndLoad"
       />
-      <el-select v-model="genre" class="genre-select" placeholder="类型" clearable @change="resetAndLoad">
+      <el-select v-model="tag" class="genre-select" placeholder="类型" clearable filterable @change="resetAndLoad">
         <el-option label="全部" value="" />
-        <el-option v-for="g in genreOptions" :key="g" :label="g" :value="g" />
+        <el-option v-for="t in tagOptions" :key="t" :label="t" :value="t" />
       </el-select>
+      <el-button @click="resetFilters">重置</el-button>
     </div>
 
     <div v-loading="loading" class="game-grid">
@@ -27,6 +28,16 @@
           <div class="game-meta">
             <span class="gb-tag-game">{{ game.genre || '未知类型' }}</span>
             <span class="gb-muted game-platform">{{ game.platform || '未知平台' }}</span>
+          </div>
+          <div v-if="tagsOf(game).length" class="game-tags">
+            <span
+              v-for="t in tagsOf(game).slice(0, 4)"
+              :key="t"
+              class="gb-tag-game tag-chip"
+              :class="{ active: tag === t }"
+              @click="pickTag(t)"
+            >{{ t }}</span>
+            <span v-if="tagsOf(game).length > 4" class="gb-muted tag-more">+{{ tagsOf(game).length - 4 }}</span>
           </div>
           <div class="game-actions">
             <template v-if="userStore.isLoggedIn">
@@ -76,7 +87,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Search } from '@element-plus/icons-vue'
-import { getGameList } from '@/api/game'
+import { getGameList, getGameTags } from '@/api/game'
 import { getMyGames, addGame, updateGame } from '@/api/ugame'
 import { useUserStore } from '@/stores/user'
 import EmptyTip from '@/components/EmptyTip.vue'
@@ -84,10 +95,7 @@ import EmptyTip from '@/components/EmptyTip.vue'
 const router = useRouter()
 const userStore = useUserStore()
 
-const genreOptions = [
-  '动作RPG', 'RPG', 'FPS', 'MOBA', '冒险', '模拟经营', '类银河恶魔城',
-  'Roguelike', 'JRPG', '动作狩猎', '动作', 'CRPG', '恐怖', '竞速', '解谜', '沙盒', '生存', '策略'
-]
+const tagOptions = ref([])
 const statusOptions = [
   { label: '想玩', value: 1 },
   { label: '在玩', value: 2 },
@@ -95,7 +103,7 @@ const statusOptions = [
 ]
 
 const keyword = ref('')
-const genre = ref('')
+const tag = ref('')
 const list = ref([])
 const total = ref(0)
 const page = ref(1)
@@ -107,12 +115,29 @@ const savingId = ref(null)
 async function loadList() {
   loading.value = true
   try {
-    const data = await getGameList({ keyword: keyword.value, genre: genre.value, page: page.value, size })
+    const data = await getGameList({ keyword: keyword.value, tag: tag.value, page: page.value, size })
     list.value = data.records || []
     total.value = data.total || 0
   } finally {
     loading.value = false
   }
+}
+
+async function loadTags() {
+  try {
+    tagOptions.value = (await getGameTags()) || []
+  } catch {
+    tagOptions.value = []
+  }
+}
+
+function tagsOf(game) {
+  return (game.tags || '').split(',').map((t) => t.trim()).filter(Boolean)
+}
+
+function pickTag(t) {
+  tag.value = tag.value === t ? '' : t
+  resetAndLoad()
 }
 
 async function loadMyMap() {
@@ -131,6 +156,12 @@ async function loadMyMap() {
 function resetAndLoad() {
   page.value = 1
   loadList()
+}
+
+function resetFilters() {
+  keyword.value = ''
+  tag.value = ''
+  resetAndLoad()
 }
 
 function currentStatus(gameId) {
@@ -164,6 +195,7 @@ async function handleStatus(game, status) {
 }
 
 onMounted(() => {
+  loadTags()
   loadList()
   loadMyMap()
 })
@@ -224,6 +256,32 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   margin-bottom: 12px;
+}
+
+.game-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: -4px 0 12px;
+}
+
+.tag-chip {
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.tag-chip:hover {
+  background-color: rgba(102, 192, 244, 0.32);
+}
+
+.tag-chip.active {
+  background-color: var(--gb-accent);
+  color: #101821;
+}
+
+.tag-more {
+  font-size: 12px;
 }
 
 .game-platform {

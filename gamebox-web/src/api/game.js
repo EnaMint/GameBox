@@ -7,3 +7,7 @@ export function getGameList(params) {
 export function getGameById(id) {
   return request.get(`/api/game/${id}`)
 }
+
+export function getGameTags() {
+  return request.get('/api/game/tags')
+}

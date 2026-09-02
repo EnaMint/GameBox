@@ -16,6 +16,7 @@ public class Game {
     private String name;
     private String cover;
     private String genre;
+    private String tags;
     private String platform;
     private String description;
     private LocalDateTime createdAt;

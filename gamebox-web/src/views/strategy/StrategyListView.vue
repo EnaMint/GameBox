@@ -34,6 +34,7 @@
           @clear="onFilterChange"
         />
         <el-button type="primary" :icon="Search" @click="onFilterChange">搜索</el-button>
+        <el-button @click="resetFilters">重置</el-button>
         <div class="sort-wrap">
           <span class="filter-label gb-muted">排序</span>
           <el-radio-group v-model="filter.sort" @change="onFilterChange">
@@ -116,6 +117,14 @@ async function load() {
 function onFilterChange() {
   page.value = 1
   load()
+}
+
+function resetFilters() {
+  filter.category = ''
+  filter.gameId = null
+  filter.keyword = ''
+  filter.sort = 'new'
+  onFilterChange()
 }
 
 function onPageChange(p) {

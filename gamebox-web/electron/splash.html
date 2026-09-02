@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>GameBox 启动中</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+    background: linear-gradient(160deg, #1b2838 0%, #16202d 60%, #101821 100%);
+    color: #c7d5e0;
+    user-select: none;
+    -webkit-app-region: drag;
+  }
+  .wrap { display: flex; flex-direction: column; height: 100%; padding: 22px 26px 18px; }
+
+  header { display: flex; align-items: center; gap: 12px; }
+  .logo { width: 40px; height: 40px; }
+  .brand { font-size: 21px; font-weight: 600; letter-spacing: 1.5px; color: #ffffff; }
+  .slogan { font-size: 11px; color: #7a8b9c; margin-top: 2px; letter-spacing: .5px; }
+
+  main { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 12px; }
+  .step { font-size: 13px; min-height: 18px; color: #c7d5e0; }
+  .step.error { color: #e06c75; }
+
+  .bar { height: 6px; border-radius: 3px; background: #0e1621; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,.5); }
+  .fill {
+    height: 100%; width: 0%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #4a90d9 0%, #66c0f4 100%);
+    box-shadow: 0 0 8px rgba(102,192,244,.55);
+  }
+  .meta { display: flex; justify-content: space-between; align-items: baseline; font-size: 11px; color: #7a8b9c; }
+  .pct { font-variant-numeric: tabular-nums; color: #acb2b8; font-size: 12px; }
+
+  .tail {
+    display: none;
+    height: 96px; overflow-y: auto;
+    background: rgba(0,0,0,.28); border: 1px solid #2a3f55; border-radius: 4px;
+    padding: 8px 10px; font-family: Consolas, "Courier New", monospace;
+    font-size: 11px; line-height: 1.55; color: #9fb3c8; white-space: pre-wrap; word-break: break-all;
+    -webkit-app-region: no-drag;
+  }
+  .tail.show { display: block; }
+
+  footer { display: flex; justify-content: flex-end; align-items: center; gap: 8px; -webkit-app-region: no-drag; }
+  .hint { margin-right: auto; font-size: 11px; color: #6b7c8d; }
+  .btn {
+    border: 1px solid #2a3f55; background: rgba(102,192,244,.08); color: #c7d5e0;
+    font-size: 12px; padding: 6px 14px; border-radius: 3px; cursor: pointer;
+    font-family: inherit; transition: background .15s, border-color .15s, color .15s;
+  }
+  .btn:hover { background: rgba(102,192,244,.2); border-color: #66c0f4; color: #fff; }
+  .btn.danger { background: rgba(224,108,117,.14); border-color: #6b3a3e; color: #e6a3a8; }
+  .btn.danger:hover { background: rgba(224,108,117,.3); border-color: #e06c75; color: #fff; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <img class="logo" src="gamebox.ico" alt="" />
+      <div>
+        <div class="brand">GAMEBOX</div>
+        <div class="slogan">游戏攻略与玩家社区</div>
+      </div>
+    </header>
+
+    <main>
+      <div id="step" class="step">Loading...</div>
+      <div class="bar"><div id="fill" class="fill"></div></div>
+      <div class="meta">
+        <span id="phase"></span>
+        <span id="pct" class="pct">0%</span>
+      </div>
+      <pre id="tail" class="tail"></pre>
+    </main>
+
+    <footer>
+      <span id="hint" class="hint"></span>
+      <div id="actionsNormal">
+        <button id="cancel" class="btn">取消</button>
+      </div>
+      <div id="actionsError" class="hidden">
+        <button id="retry" class="btn">重试</button>
+        <button id="logs" class="btn">查看日志</button>
+        <button id="quit" class="btn danger">退出</button>
+      </div>
+    </footer>
+  </div>
+
+<script>
+  const boot = window.gameboxBoot;
+  const $ = (id) => document.getElementById(id);
+  const stepEl = $('step'), fillEl = $('fill'), pctEl = $('pct'), tailEl = $('tail');
+  const hintEl = $('hint'), phaseEl = $('phase');
+
+  let target = 0;
+  let shown = 0;
+
+  // 服务全在运行时脚本 2 秒就结束，靠这里的缓动让进度条仍是一段连贯的扫过
+  setInterval(() => {
+    shown += (target - shown) * 0.18;
+    if (Math.abs(target - shown) < 0.4) shown = target;
+    const v = Math.max(0, Math.min(100, Math.round(shown)));
+    fillEl.style.width = v + '%';
+    pctEl.textContent = v + '%';
+  }, 60);
+
+  function setStep(text, level) {
+    stepEl.textContent = text;
+    stepEl.className = 'step' + (level && level !== 'info' ? ' ' + level : '');
+  }
+
+  function showError(state) {
+    $('actionsNormal').classList.add('hidden');
+    $('actionsError').classList.remove('hidden');
+    tailEl.classList.add('show');
+    phaseEl.textContent = state === 'timeout' ? '启动超时' : '启动失败';
+    hintEl.textContent = '可执行 bash stop-all.sh --all 清理已启动的服务';
+  }
+
+  function showRunning() {
+    $('actionsError').classList.add('hidden');
+    $('actionsNormal').classList.remove('hidden');
+    tailEl.classList.remove('show');
+    setStep('Loading...');
+    phaseEl.textContent = '';
+    hintEl.textContent = '';
+  }
+
+  boot.onProgress((p) => {
+    target = p.percent;
+  });
+
+  boot.onState((s) => {
+    if (s.state === 'error' || s.state === 'timeout') {
+      setStep(s.message || '启动失败', 'error');
+      tailEl.textContent = (s.tail || []).join('\n');
+      tailEl.scrollTop = tailEl.scrollHeight;
+      showError(s.state);
+    } else if (s.state === 'running') {
+      showRunning();
+    }
+  });
+
+  let armed = false;
+  let armTimer = null;
+  const cancelBtn = $('cancel');
+  cancelBtn.addEventListener('click', () => {
+    if (!armed) {
+      armed = true;
+      cancelBtn.textContent = '确认取消？';
+      cancelBtn.classList.add('danger');
+      armTimer = setTimeout(() => {
+        armed = false;
+        cancelBtn.textContent = '取消';
+        cancelBtn.classList.remove('danger');
+      }, 2500);
+      return;
+    }
+    clearTimeout(armTimer);
+    boot.cancel();
+  });
+
+  $('retry').addEventListener('click', () => { target = 0; shown = 0; showRunning(); boot.retry(); });
+  $('logs').addEventListener('click', () => boot.openLogs());
+  $('quit').addEventListener('click', () => boot.quit());
+</script>
+</body>
+</html>

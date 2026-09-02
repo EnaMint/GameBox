@@ -11,7 +11,7 @@
 graduate_design\
 ├── gamebox-backend\            # Maven 多模块后端
 │   ├── pom.xml                 # 父 POM（统一版本管理）
-│   ├── sql\                    # 建库脚本 01~04（含 16 款游戏种子数据）
+│   ├── sql\                    # 建库脚本 01~04（含 21 款游戏种子数据）
 │   ├── gamebox-common\         # 公共模块：统一返回/异常/JWT/用户上下文
 │   ├── gamebox-gateway\  :8080 # 网关：路由 + JWT 校验 + CORS
 │   ├── gamebox-auth\     :8081 # 认证：注册/登录签发 JWT
@@ -58,6 +58,15 @@ bash stop-all.sh --all  # 连 Nacos 一起停止
 唤起窗口。`start-all.sh` 打开窗口前会检测 `electron/`、`src/` 等源码是否比打包产物新，
 是则自动重新打包 `win-unpacked`（GameBox 正在运行时跳过并提示）；`stop-all.sh` 会一并
 结束托盘后台的 `GameBox.exe`。
+
+**双击 `GameBox.exe`（或桌面快捷方式）本身就是完整的一键启动**，不再需要先开终端：程序
+启动时先探测网关 `8080`，未就绪则弹出一个 Steam 风格的**加载窗口**（进度条 + Loading...），
+由它在后台隐藏执行 `start-all.sh --no-browser`，全部服务就绪后加载窗口关闭、自动进入主界面，
+全程没有终端窗口。后端已在运行时双击则直接开窗，不显示加载窗口；启动失败时加载窗口会
+转为错误态并给出「重试 / 查看日志 / 退出」。加载窗口里的「取消」会尝试结束脚本进程树，
+但已 `nohup` 起的 java 服务可能残留（对下次启动无害，脚本会按端口跳过），需要彻底清理就执行
+`bash stop-all.sh --all`。注意：走 exe 启动时不会自动重打包，改动 `gamebox-web/electron/`
+或前端源码后仍需用终端 `bash start-all.sh`（或 `npm run dist`）更新打包产物。
 
 首次使用仍需先执行第 1 步建库；Nacos 默认在 `D:\nacos`，其他位置可用
 `NACOS_HOME=/x/nacos bash start-all.sh` 指定。日志统一输出到 `logs/` 目录。
@@ -165,10 +174,15 @@ npm run dist            # 构建前端 + 打包（首次会自动下载 electron
 
 **运行原理**：打包产物内置 `dist` 构建产物，Electron 主进程在
 `127.0.0.1:5199~5219` 启动本地 HTTP 服务提供静态页面，并把 `/api/**` 代理到网关
-`127.0.0.1:8080`，因此前端代码零改动。**后端必须先运行**（`bash start-all.sh`），
-否则页面内请求会提示「后端服务不可用」。
+`127.0.0.1:8080`，因此前端代码零改动。启动时若网关未就绪，会先显示**加载窗口**并自动
+执行 `start-all.sh --no-browser` 拉起全部后端（见上文「一键启动 / 停止」）；就绪后自动
+进入主界面。若程序找不到项目根的 `start-all.sh` 或 `bash.exe`（可用环境变量
+`GAMEBOX_ROOT`、`GAMEBOX_BASH` 指定），则跳过加载窗口直接开窗，此时页面内请求会提示
+「后端服务不可用」。加载窗口由 `electron/boot.cjs`（启动编排与进度解析）、
+`electron/splash.html`、`electron/splash-preload.cjs` 三个文件构成，随 `electron/**/*`
+一起打进 `app.asar`。
 
-开发调试桌面窗口：`npm run app:dev`（直连 Vite 5173 开发服务器，支持热更新）。
+开发调试桌面窗口：`npm run app:dev`（直连 Vite 5173 开发服务器，支持热更新，不显示加载窗口）。
 
 > 打包配置说明：`package.json` 的 `build.electronDist` 指向 `tools/electron-dist-win32-x64`
 > （预先解压好的 Electron 发行版），用于规避部分机器上杀软锁定文件导致的解包重命名失败
@@ -178,7 +192,7 @@ npm run dist            # 构建前端 + 打包（首次会自动下载 electron
 ## 功能与演示路径（答辩演示参考）
 
 1. **注册/登录**：`/register` 注册 → `/login` 登录（JWT 有效期 7 天，退出仅清前端 token，见下文说明）
-2. **游戏字典与游戏库**：`/games` 浏览 16 款游戏 → 点「想玩/在玩/已通关」一键收录 → `/my/games` 管理状态、时长、评分、备注
+2. **游戏字典与游戏库**：`/games` 浏览 21 款游戏 → 类型下拉按**标签**筛选（选项来自数据库，如选「开放世界」会聚合原神、塞尔达等所有含该标签的游戏），卡片上的标签胶囊可点击直接筛选 → 点「想玩/在玩/已通关」一键收录 → `/my/games` 管理状态、时长、评分、备注
 3. **攻略**：`/strategy` 列表（分类/游戏/关键词筛选，最新/最热排序）→ 发布（Markdown 编辑器 + 封面上传）→ 详情页点赞、评论
 4. **组队**：`/team` 大厅 → 发布组队帖（人数/开麦/游戏时间）→ 其他账号申请 → 队长审批；满员自动转为「已满员」
 5. **战绩**：`/record` 动态流 → 发布战绩（最多 9 图）→ 点赞互动

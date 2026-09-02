@@ -36,7 +36,7 @@
               </template>
             </el-dropdown>
 
-            <el-dropdown trigger="click" @command="handleUserMenu">
+            <el-dropdown trigger="hover" @command="handleUserMenu">
               <span class="avatar-wrap">
                 <el-avatar :size="34" :src="userStore.userInfo?.avatar || undefined">
                   {{ avatarText }}

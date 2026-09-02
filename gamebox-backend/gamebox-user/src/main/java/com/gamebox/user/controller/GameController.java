@@ -26,9 +26,15 @@ public class GameController {
     @GetMapping("/list")
     public R<Page<GameVO>> list(@RequestParam(required = false) String keyword,
                                 @RequestParam(required = false) String genre,
+                                @RequestParam(required = false) String tag,
                                 @RequestParam(defaultValue = "1") Integer page,
                                 @RequestParam(defaultValue = "12") Integer size) {
-        return R.ok(gameService.list(keyword, genre, page, size));
+        return R.ok(gameService.list(keyword, genre, tag, page, size));
+    }
+
+    @GetMapping("/tags")
+    public R<List<String>> tags() {
+        return R.ok(gameService.tags());
     }
 
     @GetMapping("/{id}")

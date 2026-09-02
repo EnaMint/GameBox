@@ -19,6 +19,8 @@
         <el-option label="已关闭" :value="3" />
       </el-select>
 
+      <el-button @click="resetFilters">重置</el-button>
+
       <el-button class="create-btn" type="primary" :icon="Plus" @click="router.push('/team/create')">发布组队</el-button>
     </div>
 
@@ -84,6 +86,12 @@ async function loadList() {
 function resetAndLoad() {
   page.value = 1
   loadList()
+}
+
+function resetFilters() {
+  filterGameId.value = ''
+  filterStatus.value = 1
+  resetAndLoad()
 }
 
 onMounted(() => {
